@@ -8,11 +8,11 @@
         .box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 350px; background: #388e3c; border-radius: 10px; }
         .grid-select { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
         .user-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 300px; margin: 20px auto; }
-        .card-num, .user-cell { border: 1px solid #fff; padding: 10px; cursor: pointer; border-radius: 5px; }
+        .card-num, .user-cell { border: 1px solid #fff; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .card-num { background: #1b5e20; }
-        .user-cell { background: #fff; color: black; font-weight: bold; }
+        .user-cell { background: #fff; color: black; }
         .selected { background: #ffeb3b !important; color: black; }
-        .marked { background: #ffeb3b !important; }
+        .marked { background: #ffeb3b !important; color: black; border: 2px solid red; }
         .ball { display: inline-block; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; background: white; color: black; font-weight: bold; font-size: 1.2em; border: 3px solid #ccc; }
         #game-area { display: none; }
     </style>
@@ -23,6 +23,9 @@
         <h1>GASHENA BINGO</h1>
         <div class="box">
             ሒሳብ: <span id="balance">10</span> ብር | <button onclick="deposit()">Deposit</button>
+        </div>
+        <div class="box">
+            ተጫዋቾች: <span id="player-count">1</span> | ደራሽ (Pot): <span id="pot-amount">0</span> ብር
         </div>
         <button onclick="joinGame()" style="padding:15px; font-size:18px; cursor:pointer;">ጨዋታውን ይቀላቀሉ (-2 ብር)</button>
         <h3>ካርድዎን ይምረጡ (1-500):</h3>
@@ -35,13 +38,17 @@
         <h3>የእርስዎ ካርድ:</h3>
         <div id="user-card" class="user-grid"></div>
         <h2 id="win-message"></h2>
+        <button onclick="location.reload()" style="padding:10px; cursor:pointer;">ወደ መጀመሪያው ተመለስ</button>
     </div>
 
     <script>
         let balance = parseInt(localStorage.getItem('balance')) || 10;
+        let pot = 0;
+        let playerCount = 1;
         let selectedCard = null;
         document.getElementById('balance').innerText = balance;
 
+        // 1. ካርድ መምረጫ
         const grid = document.getElementById('card-selection');
         for (let i = 1; i <= 500; i++) {
             let div = document.createElement('div');
@@ -55,9 +62,9 @@
             grid.appendChild(div);
         }
 
+        // 2. Deposit Logic
         function deposit() {
-            let message = "ክፍያ በቴሌብር (Telebirr) ብቻ!\nቁጥር: 0939532888\nስም: Tedros\n\nመጠን ያስገቡ:";
-            let amount = prompt(message);
+            let amount = prompt("ክፍያ በቴሌብር (0939532888 - Tedros) | መጠን ያስገቡ:");
             if(amount && !isNaN(amount)) { 
                 balance += parseInt(amount); 
                 localStorage.setItem('balance', balance); 
@@ -66,14 +73,21 @@
             }
         }
 
+        // 3. ጨዋታ መጀመር
         function joinGame() {
-            if(!selectedCard) { alert("እባክዎ መጀመሪያ ካርድ ይምረጡ!"); return; }
+            if(!selectedCard) { alert("እባክዎ ካርድ ይምረጡ!"); return; }
             if(balance >= 2) {
                 balance -= 2;
-                localStorage.setItem('balance', balance);
+                pot += 2;
+                playerCount++;
+                document.getElementById('balance').innerText = balance;
+                document.getElementById('pot-amount').innerText = pot;
+                document.getElementById('player-count').innerText = playerCount;
+                
                 document.getElementById('main-page').style.display = 'none';
                 document.getElementById('game-area').style.display = 'block';
                 
+                // 5x5 ካርድ መፍጠር
                 const userCard = document.getElementById('user-card');
                 for(let i=0; i<25; i++) {
                     let num = Math.floor(Math.random() * 75) + 1;
@@ -87,6 +101,7 @@
             } else { alert("ሒሳብዎ በቂ አይደለም!"); }
         }
 
+        // 4. የጨዋታ አሰራር (Caller)
         function startCaller() {
             setInterval(() => {
                 let num = Math.floor(Math.random() * 75) + 1;
@@ -94,33 +109,25 @@
             }, 3000);
         }
 
+        // 5. የማሸነፊያ ህግ (Rows, Columns, Diagonals, Edges)
         function checkWin() {
             let cells = document.querySelectorAll('.user-cell');
-            let board = [];
-            for(let i=0; i<25; i++) {
-                board.push(cells[i].classList.contains('marked'));
-            }
-
+            let b = Array.from(cells).map(c => c.classList.contains('marked'));
             let won = false;
 
-            // 1. አግድም (Rows)
-            for(let r=0; r<5; r++) {
-                if(board.slice(r*5, r*5+5).every(val => val)) won = true;
+            // Rows & Cols
+            for(let i=0; i<5; i++) {
+                if(b.slice(i*5, i*5+5).every(v => v)) won = true;
+                if([b[i], b[i+5], b[i+10], b[i+15], b[i+20]].every(v => v)) won = true;
             }
-            // 2. ቀጥታ (Columns)
-            for(let c=0; c<5; c++) {
-                if([board[c], board[c+5], board[c+10], board[c+15], board[c+20]].every(val => val)) won = true;
-            }
-            // 3. ዲያጎናል (Diagonals)
-            if([board[0], board[6], board[12], board[18], board[24]].every(val => val)) won = true;
-            if([board[4], board[8], board[12], board[16], board[20]].every(val => val)) won = true;
-            // 4. ጠርዝ (Edges)
-            let edges = [0,1,2,3,4, 5,9, 10,14, 15,19, 20,21,22,23,24];
-            if(edges.every(idx => board[idx])) won = true;
+            // Diagonals
+            if([b[0], b[6], b[12], b[18], b[24]].every(v => v)) won = true;
+            if([b[4], b[8], b[12], b[16], b[20]].every(v => v)) won = true;
+            // Edges (Corners/Border)
+            let e = [0,1,2,3,4, 5,9, 10,14, 15,19, 20,21,22,23,24];
+            if(e.every(idx => b[idx])) won = true;
 
-            if(won) {
-                document.getElementById('win-message').innerText = "BINGO! GASHENA WINNER!";
-            }
+            if(won) document.getElementById('win-message').innerText = "BINGO! GASHENA WINNER!";
         }
     </script>
 </body>
