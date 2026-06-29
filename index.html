@@ -3,28 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ኢትዮ ቢንጎ ጨዋታ</title>
+    <title>የ Tedros ቢንጎ ጨዋታ</title>
     <style>
-        /* የጨዋታው መልክ ዲዛይን (CSS) */
-        body { background-color: #1a1a1a; color: white; text-align: center; font-family: sans-serif; }
-        .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-        .number-box { padding: 15px; background: #333; border-radius: 5px; font-weight: bold; }
-        h1 { color: #ffcc00; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
+        .header { margin-bottom: 20px; }
+        .card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 20px auto; width: 320px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .cell { border: 1px solid #ddd; padding: 15px 5px; text-align: center; font-weight: bold; }
+        button { padding: 12px 20px; margin: 5px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <h1>የቢንጎ ሰንጠረዥ</h1>
-    <div class="board" id="board"></div>
+    <div class="header">
+        <h1>የ Tedros ቢንጎ</h1>
+        <button onclick="showWallet()">የእኔ ቴሌብር አካውንት</button>
+        <p>ቀሪ ሂሳብዎ: <span id="balance">50</span> ብር</p>
+    </div>
+
+    <div class="lobby">
+        <button onclick="enterGame(10)">ባለ 10 ብር ጨዋታ</button>
+        <button onclick="enterGame(20)">ባለ 20 ብር ጨዋታ</button>
+    </div>
+
+    <div id="bingo-card" class="card">
+        <div class="cell">B</div><div class="cell">I</div><div class="cell">N</div><div class="cell">G</div><div class="cell">O</div>
+    </div>
+
+    <button id="bingo-btn" style="display:none;" onclick="checkBingo()">BINGO!</button>
 
     <script>
-        // ቁጥሮቹን በራስ-ሰር የሚሞላ ኮድ (JavaScript)
-        const board = document.getElementById('board');
-        for (let i = 1; i <= 75; i++) {
-            let div = document.createElement('div');
-            div.className = 'number-box';
-            div.innerText = i;
-            board.appendChild(div);
+        function showWallet() {
+            alert("ገንዘብ ለመሙላት ወደዚህ ቴሌብር ይላኩ:\n\nስም: tedros\nቁጥር: 0939532888");
+        }
+
+        function enterGame(amount) {
+            let balance = parseInt(document.getElementById('balance').innerText);
+            if (balance < amount) {
+                alert("ቀሪ ሒሳብዎ አነስተኛ ነው!");
+            } else {
+                document.getElementById('balance').innerText = balance - amount;
+                alert("ክፍያ ተቀናንሷል! ጨዋታው በቅርቡ ይጀምራል...");
+                document.getElementById('bingo-btn').style.display = "inline-block";
+            }
+        }
+
+        function checkBingo() {
+            alert("ቢንጎው ተረጋገጠ! አሸናፊው እየተጣራ ነው...");
         }
     </script>
 </body>
