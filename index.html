@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ኢትዮ ቢንጎ ጨዋታ</title>
+    <style>
+        /* የጨዋታው መልክ ዲዛይን (CSS) */
+        body { background-color: #1a1a1a; color: white; text-align: center; font-family: sans-serif; }
+        .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .number-box { padding: 15px; background: #333; border-radius: 5px; font-weight: bold; }
+        h1 { color: #ffcc00; }
+    </style>
+</head>
+<body>
+
+    <h1>የቢንጎ ሰንጠረዥ</h1>
+    <div class="board" id="board"></div>
+
+    <script>
+        // ቁጥሮቹን በራስ-ሰር የሚሞላ ኮድ (JavaScript)
+        const board = document.getElementById('board');
+        for (let i = 1; i <= 75; i++) {
+            let div = document.createElement('div');
+            div.className = 'number-box';
+            div.innerText = i;
+            board.appendChild(div);
+        }
+    </script>
+</body>
+</html>
