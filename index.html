@@ -23,8 +23,7 @@
         <h1>GASHENA BINGO</h1>
         <div class="box">
             ሒሳብ: <span id="balance">0</span> ብር | 
-            <button onclick="deposit()">Deposit</button> | 
-            <button onclick="withdraw()">Withdraw</button>
+            <button onclick="deposit()">Deposit</button>
         </div>
         <div class="box">
             <p>ተጫዋቾች: <span id="player-count">0</span></p>
@@ -41,16 +40,20 @@
         <table id="history-table">
             <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
         </table>
-        <h2 id="result"></h2>
     </div>
 
     <script>
-        let balance = parseInt(localStorage.getItem('balance')) || 0;
+        // 1. የ10 ብር ቦነስ አሰራር
+        let balance = parseInt(localStorage.getItem('balance'));
+        if (isNaN(balance)) {
+            balance = 10; // ለመጀመሪያ ጊዜ ለተጠቃሚው 10 ብር ይሰጣል
+            localStorage.setItem('balance', balance);
+        }
+        document.getElementById('balance').innerText = balance;
+
         let pot = 0;
         let playerCount = 0;
         let selectedCard = null;
-
-        document.getElementById('balance').innerText = balance;
 
         const grid = document.getElementById('card-selection');
         for (let i = 1; i <= 500; i++) {
@@ -79,39 +82,33 @@
         function deposit() {
             let myName = "Tedros"; 
             let myPhone = "0939532888"; 
-            let message = "ክፍያ የሚፈጸመው በቴሌብር (Telebirr) ብቻ ነው!\n\n" +
-                          "1. ወደ ቴሌብር መተግበሪያ ይሂዱ\n" +
-                          "2. ወደዚህ ቁጥር ይላኩ: " + myPhone + "\n" +
-                          "3. ተቀባይ ስም: " + myName + "\n\n" +
-                          "መሙላት የሚፈልጉትን መጠን ያስገቡ:";
-            
+            let message = "ክፍያ የሚፈጸመው በቴሌብር (Telebirr) ብቻ ነው!\n\nቁጥር: " + myPhone + "\nስም: " + myName + "\n\nመሙላት የሚፈልጉትን መጠን ያስገቡ:";
             let amount = prompt(message);
             if(amount && !isNaN(amount)) { 
                 balance += parseInt(amount); 
                 localStorage.setItem('balance', balance); 
                 document.getElementById('balance').innerText = balance;
-                alert("ክፍያዎ ተመዝግቧል፣ እየተረጋገጠ ነው!");
+                alert("ክፍያዎ ተመዝግቧል!");
             }
-        }
-
-        function withdraw() {
-            let amount = parseInt(prompt("ማውጣት የሚፈልጉትን መጠን ያስገቡ:"));
-            if(amount && balance >= amount) { balance -= amount; localStorage.setItem('balance', balance); document.getElementById('balance').innerText = balance; }
-            else alert("ሒሳብዎ በቂ አይደለም!");
         }
 
         function joinGame() {
             if(!selectedCard) { alert("እባክዎ መጀመሪያ ካርድ ይምረጡ!"); return; }
             if(balance >= 2) {
-                balance -= 2; pot += 2; playerCount++;
+                balance -= 2; 
+                pot += 2; 
+                playerCount++;
                 localStorage.setItem('balance', balance);
                 document.getElementById('balance').innerText = balance;
                 document.getElementById('pot-amount').innerText = pot;
                 document.getElementById('player-count').innerText = playerCount;
+                
                 document.getElementById('main-page').style.display = 'none';
                 document.getElementById('game-area').style.display = 'block';
                 startCaller();
-            } else alert("ሒሳብዎ በቂ አይደለም!");
+            } else {
+                alert("ሒሳብዎ በቂ አይደለም! እባክዎ Deposit ያድርጉ።");
+            }
         }
 
         function startCaller() {
