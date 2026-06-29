@@ -4,90 +4,54 @@
     <meta charset="UTF-8">
     <title>GASHENA BINGO</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #fffdf5; padding: 10px; }
-        .wallet-box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 300px; border-radius: 10px; }
-        .game-info { background: #f0f4c3; padding: 15px; border-radius: 8px; margin: 10px auto; max-width: 300px; }
+        body { font-family: sans-serif; text-align: center; background: #2e7d32; color: white; padding: 10px; }
+        .box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 350px; background: #388e3c; border-radius: 10px; }
         .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
-        .card-num { border: 1px solid #ccc; padding: 10px; cursor: pointer; background: white; border-radius: 5px; }
-        .selected { background: #7986cb; color: white; }
-        
+        .card-num { border: 1px solid #fff; padding: 10px; cursor: pointer; background: #1b5e20; border-radius: 5px; }
+        .selected { background: #ffeb3b !important; color: black; }
+        .ball { display: inline-block; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; background: white; color: black; font-weight: bold; font-size: 1.2em; margin: 10px; border: 3px solid #ccc; }
+        table { margin: 20px auto; border-collapse: collapse; background: white; color: black; }
+        th, td { border: 1px solid #ddd; padding: 8px; width: 40px; }
+        th { background: #1b5e20; color: white; }
+        .highlight { background: #ffeb3b !important; font-weight: bold; }
         #game-area { display: none; }
-        .bingo-card { border: 2px solid #aaa; width: 320px; margin: 20px auto; background: white; display: grid; grid-template-columns: repeat(5, 1fr); }
-        .cell { border: 1px solid #ddd; padding: 10px; font-weight: bold; }
-        .marked { background: #fca11a; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="selection-page">
+    <div id="main-page" style="display:block;">
         <h1>GASHENA BINGO</h1>
-        <div class="wallet-box">
+        <div class="box">
             ሒሳብ: <span id="balance">0</span> ብር | 
             <button onclick="deposit()">Deposit</button> | 
             <button onclick="withdraw()">Withdraw</button>
         </div>
-
-        <div class="game-info">
-            <p>የተጫዋች ብዛት: <span id="player-count">0</span></p>
+        <div class="box">
+            <p>ተጫዋቾች: <span id="player-count">0</span></p>
             <p>ደራሽ (Pot): <span id="pot-amount">0</span> ብር</p>
         </div>
-
-        <button id="join-btn" onclick="joinGame()">ጨዋታውን ይቀላቀሉ (-2 ብር)</button>
-
-        <div id="timer">በ 35 ሰከንድ ይጀምራል...</div>
+        <button onclick="joinGame()" style="padding:15px; font-size:18px; cursor:pointer;">ጨዋታውን ይቀላቀሉ (-2 ብር)</button>
+        <h3>ካርድዎን ይምረጡ (1-500):</h3>
         <div id="card-selection" class="grid"></div>
     </div>
 
     <div id="game-area">
         <h1>GASHENA BINGO</h1>
-        <h3>የተጠራ ቁጥር: <span id="called-number">-</span></h3>
-        <div id="bingo-board" class="bingo-card"></div>
+        <h3>የተጠራ ኳስ: <span id="called-ball" class="ball">-</span></h3>
+        <table id="history-table">
+            <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
+        </table>
         <h2 id="result"></h2>
     </div>
 
     <script>
-        // ሒሳብ ከ Browser memory
         let balance = parseInt(localStorage.getItem('balance')) || 0;
-        let playerCount = 0;
         let pot = 0;
-        let hasJoined = false;
+        let playerCount = 0;
         let selectedCard = null;
 
         document.getElementById('balance').innerText = balance;
 
-        function deposit() {
-            let amount = parseInt(prompt("መሙላት የሚፈልጉትን መጠን ያስገቡ:"));
-            if (amount && !isNaN(amount)) {
-                balance += amount;
-                localStorage.setItem('balance', balance);
-                document.getElementById('balance').innerText = balance;
-            }
-        }
-
-        function withdraw() {
-            let amount = parseInt(prompt("ማውጣት የሚፈልጉትን መጠን ያስገቡ:"));
-            if (amount && balance >= amount) {
-                balance -= amount;
-                localStorage.setItem('balance', balance);
-                document.getElementById('balance').innerText = balance;
-            } else { alert("ሒሳብዎ በቂ አይደለም!"); }
-        }
-
-        function joinGame() {
-            if (hasJoined) { alert("ቀድመው ተቀላቅለዋል!"); return; }
-            if (balance >= 2) {
-                balance -= 2;
-                pot += 2;
-                playerCount++;
-                hasJoined = true;
-                localStorage.setItem('balance', balance);
-                document.getElementById('balance').innerText = balance;
-                document.getElementById('pot-amount').innerText = pot;
-                document.getElementById('player-count').innerText = playerCount;
-            } else { alert("ሒሳብዎ በቂ አይደለም! Deposit ያድርጉ።"); }
-        }
-
-        // ካርድ መምረጫ
         const grid = document.getElementById('card-selection');
         for (let i = 1; i <= 500; i++) {
             let div = document.createElement('div');
@@ -101,51 +65,64 @@
             grid.appendChild(div);
         }
 
-        // ቆጠራ
-        let seconds = 35;
-        let timerDisplay = document.getElementById('timer');
-        let countdown = setInterval(() => {
-            seconds--;
-            timerDisplay.innerText = "በ " + seconds + " ሰከንድ ይጀምራል!";
-            if (seconds <= 0) {
-                clearInterval(countdown);
-                if(selectedCard) startGame();
-                else alert("እባክዎ ከመጀመርዎ በፊት ካርድ ይምረጡ!");
+        const table = document.getElementById('history-table');
+        for(let i=1; i<=15; i++) {
+            let row = table.insertRow();
+            for(let j=0; j<5; j++) {
+                let cell = row.insertCell();
+                let num = (j * 15) + i;
+                cell.innerText = num;
+                cell.id = 'cell-' + num;
             }
-        }, 1000);
-
-        function startGame() {
-            document.getElementById('selection-page').style.display = 'none';
-            document.getElementById('game-area').style.display = 'block';
-            createBoard();
-            startCaller();
         }
 
-        function createBoard() {
-            const board = document.getElementById('bingo-board');
-            const nums = [14,30,43,47,66, 6,22,41,51,62, 3,20,'★',52,72, 7,17,35,54,69, 15,25,39,59,64];
-            nums.forEach(n => {
-                let div = document.createElement('div');
-                div.className = 'cell';
-                div.innerText = n;
-                div.id = 'cell-' + n;
-                board.appendChild(div);
-            });
+        function deposit() {
+            let myName = "Tedros"; 
+            let myPhone = "0939532888"; 
+            let message = "ክፍያ የሚፈጸመው በቴሌብር (Telebirr) ብቻ ነው!\n\n" +
+                          "1. ወደ ቴሌብር መተግበሪያ ይሂዱ\n" +
+                          "2. ወደዚህ ቁጥር ይላኩ: " + myPhone + "\n" +
+                          "3. ተቀባይ ስም: " + myName + "\n\n" +
+                          "መሙላት የሚፈልጉትን መጠን ያስገቡ:";
+            
+            let amount = prompt(message);
+            if(amount && !isNaN(amount)) { 
+                balance += parseInt(amount); 
+                localStorage.setItem('balance', balance); 
+                document.getElementById('balance').innerText = balance;
+                alert("ክፍያዎ ተመዝግቧል፣ እየተረጋገጠ ነው!");
+            }
+        }
+
+        function withdraw() {
+            let amount = parseInt(prompt("ማውጣት የሚፈልጉትን መጠን ያስገቡ:"));
+            if(amount && balance >= amount) { balance -= amount; localStorage.setItem('balance', balance); document.getElementById('balance').innerText = balance; }
+            else alert("ሒሳብዎ በቂ አይደለም!");
+        }
+
+        function joinGame() {
+            if(!selectedCard) { alert("እባክዎ መጀመሪያ ካርድ ይምረጡ!"); return; }
+            if(balance >= 2) {
+                balance -= 2; pot += 2; playerCount++;
+                localStorage.setItem('balance', balance);
+                document.getElementById('balance').innerText = balance;
+                document.getElementById('pot-amount').innerText = pot;
+                document.getElementById('player-count').innerText = playerCount;
+                document.getElementById('main-page').style.display = 'none';
+                document.getElementById('game-area').style.display = 'block';
+                startCaller();
+            } else alert("ሒሳብዎ በቂ አይደለም!");
         }
 
         function startCaller() {
             setInterval(() => {
-                let num = Math.floor(Math.random() * 75) + 1;
-                document.getElementById('called-number').innerText = num;
+                let letterIndex = Math.floor(Math.random() * 5);
+                let letter = ['B', 'I', 'N', 'G', 'O'][letterIndex];
+                let num = Math.floor(Math.random() * 15) + 1 + (letterIndex * 15);
+                document.getElementById('called-ball').innerText = letter + num;
                 let cell = document.getElementById('cell-' + num);
-                if(cell) { cell.classList.add('marked'); checkBingo(); }
-            }, 2000);
-        }
-
-        function checkBingo() {
-            if(document.querySelectorAll('.marked').length >= 5) {
-                document.getElementById('result').innerText = "BINGO! አሸንፈሃል!";
-            }
+                if(cell) cell.classList.add('highlight');
+            }, 3000);
         }
     </script>
 </body>
