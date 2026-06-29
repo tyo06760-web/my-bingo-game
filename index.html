@@ -2,53 +2,75 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>የ Tedros ቢንጎ ጨዋታ</title>
+    <title>Mufasa Bingo - ሙሉ ጨዋታ</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
-        .header { margin-bottom: 20px; }
-        .card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 20px auto; width: 320px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .cell { border: 1px solid #ddd; padding: 15px 5px; text-align: center; font-weight: bold; }
-        button { padding: 12px 20px; margin: 5px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 5px; }
+        body { font-family: sans-serif; text-align: center; background: #fffdf5; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
+        .card-num { border: 1px solid #ccc; padding: 10px; cursor: pointer; background: white; border-radius: 5px; }
+        .selected { background: #7986cb; color: white; }
+        #timer { font-size: 1.5em; font-weight: bold; color: #e65100; margin: 20px; }
+        
+        /* የቢንጎ ካርድ ዲዛይን (ከቀድሞው) */
+        .bingo-card { border: 2px solid #aaa; width: 320px; margin: 20px auto; display: none; }
+        .header { display: flex; background-color: #fca11a; }
+        .letter { flex: 1; padding: 10px; font-weight: bold; color: white; }
+        .cells { display: grid; grid-template-columns: repeat(5, 1fr); background: white; }
+        .cell { border: 1px solid #ddd; padding: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>የ Tedros ቢንጎ</h1>
-        <button onclick="showWallet()">የእኔ ቴሌብር አካውንት</button>
-        <p>ቀሪ ሂሳብዎ: <span id="balance">50</span> ብር</p>
+    <div id="selection-page">
+        <h1>Mufasa Bingo</h1>
+        <div id="timer">በ 35 ሰከንድ ይጀምራል...</div>
+        <p>የሚጫወቱበትን ካርድ ይምረጡ (1-500)</p>
+        <div id="card-selection" class="grid"></div>
     </div>
 
-    <div class="lobby">
-        <button onclick="enterGame(10)">ባለ 10 ብር ጨዋታ</button>
-        <button onclick="enterGame(20)">ባለ 20 ብር ጨዋታ</button>
+    <div id="game-page" class="bingo-card">
+        <div class="header">
+            <div class="letter">B</div><div class="letter">I</div><div class="letter">N</div><div class="letter">G</div><div class="letter">O</div>
+        </div>
+        <div id="bingo-grid" class="cells"></div>
     </div>
-
-    <div id="bingo-card" class="card">
-        <div class="cell">B</div><div class="cell">I</div><div class="cell">N</div><div class="cell">G</div><div class="cell">O</div>
-    </div>
-
-    <button id="bingo-btn" style="display:none;" onclick="checkBingo()">BINGO!</button>
 
     <script>
-        function showWallet() {
-            alert("ገንዘብ ለመሙላት ወደዚህ ቴሌብር ይላኩ:\n\nስም: tedros\nቁጥር: 0939532888");
+        // 1. የካርድ መምረጫ
+        const grid = document.getElementById('card-selection');
+        for (let i = 1; i <= 500; i++) {
+            let div = document.createElement('div');
+            div.className = 'card-num';
+            div.innerText = i;
+            div.onclick = function() {
+                document.querySelectorAll('.card-num').forEach(el => el.classList.remove('selected'));
+                this.classList.add('selected');
+            };
+            grid.appendChild(div);
         }
 
-        function enterGame(amount) {
-            let balance = parseInt(document.getElementById('balance').innerText);
-            if (balance < amount) {
-                alert("ቀሪ ሒሳብዎ አነስተኛ ነው!");
-            } else {
-                document.getElementById('balance').innerText = balance - amount;
-                alert("ክፍያ ተቀናንሷል! ጨዋታው በቅርቡ ይጀምራል...");
-                document.getElementById('bingo-btn').style.display = "inline-block";
+        // 2. የሰዓት ቆጠራና ወደ ጨዋታው መቀየር
+        let seconds = 35;
+        let timerDisplay = document.getElementById('timer');
+        let countdown = setInterval(() => {
+            seconds--;
+            timerDisplay.innerText = "በ " + seconds + " ሰከንድ ይጀምራል!";
+            if (seconds <= 0) {
+                clearInterval(countdown);
+                document.getElementById('selection-page').style.display = 'none';
+                document.getElementById('game-page').style.display = 'block';
+                generateBingoNumbers();
             }
-        }
+        }, 1000);
 
-        function checkBingo() {
-            alert("ቢንጎው ተረጋገጠ! አሸናፊው እየተጣራ ነው...");
+        // 3. የቢንጎ ቁጥሮች መፍጠሪያ
+        function generateBingoNumbers() {
+            const bingoGrid = document.getElementById('bingo-grid');
+            for (let i = 0; i < 25; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = i === 12 ? '★' : Math.floor(Math.random() * 99) + 1;
+                bingoGrid.appendChild(cell);
+            }
         }
     </script>
 </body>
