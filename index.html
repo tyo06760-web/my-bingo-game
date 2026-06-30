@@ -6,16 +6,20 @@
     <style>
         body { font-family: sans-serif; text-align: center; background: #2e7d32; color: white; padding: 10px; }
         .box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 350px; background: #388e3c; border-radius: 10px; }
+        
+        /* እሮዛማ የካርድ መምረጫ ስታይል */
         .grid-select { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
+        .card-num { border: 1px solid #f8bbd0; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ec407a; color: white; }
+        .card-num:hover { background: #d81b60; }
+        .selected { background: #f06292 !important; border: 2px solid white !important; }
+
+        /* Bingo Card Styling */
         .user-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; max-width: 300px; margin: 10px auto; }
-        .bingo-header { font-weight: bold; background: #1b5e20; padding: 5px; border: 1px solid #fff; }
-        .card-num, .user-cell { border: 1px solid #fff; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .card-num { background: #1b5e20; }
-        .user-cell { background: #fff; color: black; height: 40px; display: flex; align-items: center; justify-content: center; }
-        .selected { background: #ffeb3b !important; color: black; }
-        .marked { background: #ffeb3b !important; color: black; border: 2px solid red; }
-        .free-space { background: #ffd54f !important; }
-        .ball { display: inline-block; width: 80px; height: 60px; line-height: 60px; border-radius: 10px; background: white; color: black; font-weight: bold; font-size: 1.2em; border: 3px solid #ccc; }
+        .bingo-header { font-weight: bold; background: #880e4f; padding: 5px; border: 1px solid #fff; color: white; }
+        .user-cell { background: #fff; color: black; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: 1px solid #ddd; }
+        .marked { background: #f48fb1 !important; color: white; border: 2px solid #ad1457; }
+        .free-space { background: #e91e63 !important; color: white; }
+        .ball { display: inline-block; width: 100px; height: 60px; line-height: 60px; border-radius: 10px; background: white; color: #ad1457; font-weight: bold; font-size: 1.2em; border: 3px solid #ad1457; }
         #game-area { display: none; }
     </style>
 </head>
@@ -29,7 +33,7 @@
         <div class="box">
             ተጫዋቾች: <span id="player-count">1</span> | ደራሽ (Pot): <span id="pot-amount">0</span> ብር
         </div>
-        <button onclick="joinGame()" style="padding:15px; font-size:18px; cursor:pointer;">ጨዋታውን ይቀላቀሉ (-2 ብር)</button>
+        <button onclick="joinGame()" style="padding:15px; font-size:18px; cursor:pointer; background:#ec407a; color:white; border:none; border-radius:5px;">ጨዋታውን ይቀላቀሉ (-2 ብር)</button>
         <h3>ካርድዎን ይምረጡ (1-500):</h3>
         <div id="card-selection" class="grid-select"></div>
     </div>
@@ -49,7 +53,6 @@
         let selectedCard = null;
         document.getElementById('balance').innerText = balance;
 
-        // 1. ካርድ መምረጫ
         const grid = document.getElementById('card-selection');
         for (let i = 1; i <= 500; i++) {
             let div = document.createElement('div');
@@ -95,8 +98,9 @@
                     userCard.appendChild(div);
                 });
 
-                for(let col=0; col<5; col++) {
-                    for(let row=0; row<5; row++) {
+                // ቁጥሮችን በክልል መፍጠር
+                for(let row=0; row<5; row++) {
+                    for(let col=0; col<5; col++) {
                         let div = document.createElement('div');
                         div.className = 'user-cell';
                         if(row === 2 && col === 2) {
@@ -129,7 +133,6 @@
             let cells = document.querySelectorAll('.user-cell');
             let b = Array.from(cells).map(c => c.classList.contains('marked'));
             let won = false;
-            // 25 cell total (0 to 24)
             for(let i=0; i<5; i++) {
                 if(b.slice(i*5, i*5+5).every(v => v)) won = true;
                 if([b[i], b[i+5], b[i+10], b[i+15], b[i+20]].every(v => v)) won = true;
