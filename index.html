@@ -7,13 +7,16 @@
         body { font-family: sans-serif; text-align: center; background: #2e7d32; color: white; padding: 10px; }
         .box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 350px; background: #388e3c; border-radius: 10px; }
         .grid-select { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
-        .user-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 300px; margin: 20px auto; }
+        /* Bingo Card Styling */
+        .user-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; max-width: 300px; margin: 10px auto; }
+        .bingo-header { font-weight: bold; background: #1b5e20; padding: 5px; }
         .card-num, .user-cell { border: 1px solid #fff; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .card-num { background: #1b5e20; }
-        .user-cell { background: #fff; color: black; }
+        .user-cell { background: #fff; color: black; height: 40px; display: flex; align-items: center; justify-content: center; }
         .selected { background: #ffeb3b !important; color: black; }
         .marked { background: #ffeb3b !important; color: black; border: 2px solid red; }
-        .ball { display: inline-block; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; background: white; color: black; font-weight: bold; font-size: 1.2em; border: 3px solid #ccc; }
+        .free-space { background: #ffd54f !important; }
+        .ball { display: inline-block; width: 80px; height: 60px; line-height: 60px; border-radius: 10px; background: white; color: black; font-weight: bold; font-size: 1.2em; border: 3px solid #ccc; }
         #game-area { display: none; }
     </style>
 </head>
@@ -35,7 +38,6 @@
     <div id="game-area">
         <h1>GASHENA BINGO</h1>
         <h3>የተጠራ: <span id="called-ball" class="ball">-</span></h3>
-        <h3>የእርስዎ ካርድ:</h3>
         <div id="user-card" class="user-grid"></div>
         <h2 id="win-message"></h2>
         <button onclick="location.reload()" style="padding:10px; cursor:pointer;">ወደ መጀመሪያው ተመለስ</button>
@@ -62,7 +64,6 @@
             grid.appendChild(div);
         }
 
-        // 2. Deposit Logic
         function deposit() {
             let amount = prompt("ክፍያ በቴሌብር (0939532888 - Tedros) | መጠን ያስገቡ:");
             if(amount && !isNaN(amount)) { 
@@ -73,13 +74,10 @@
             }
         }
 
-        // 3. ጨዋታ መጀመር
         function joinGame() {
             if(!selectedCard) { alert("እባክዎ ካርድ ይምረጡ!"); return; }
             if(balance >= 2) {
-                balance -= 2;
-                pot += 2;
-                playerCount++;
+                balance -= 2; pot += 2; playerCount++;
                 document.getElementById('balance').innerText = balance;
                 document.getElementById('pot-amount').innerText = pot;
                 document.getElementById('player-count').innerText = playerCount;
@@ -87,48 +85,56 @@
                 document.getElementById('main-page').style.display = 'none';
                 document.getElementById('game-area').style.display = 'block';
                 
-                // 5x5 ካርድ መፍጠር
+                // Bingo Card Grid (B-I-N-G-O)
                 const userCard = document.getElementById('user-card');
+                const headers = ['B', 'I', 'N', 'G', 'O'];
+                headers.forEach(h => {
+                    let div = document.createElement('div');
+                    div.className = 'bingo-header';
+                    div.innerText = h;
+                    userCard.appendChild(div);
+                });
+
                 for(let i=0; i<25; i++) {
-                    let num = Math.floor(Math.random() * 75) + 1;
                     let div = document.createElement('div');
                     div.className = 'user-cell';
-                    div.innerText = num;
-                    div.onclick = function() { this.classList.add('marked'); checkWin(); };
+                    if(i === 12) {
+                        div.innerText = "FREE";
+                        div.classList.add('marked', 'free-space');
+                    } else {
+                        div.innerText = Math.floor(Math.random() * 75) + 1;
+                        div.onclick = function() { this.classList.add('marked'); checkWin(); };
+                    }
                     userCard.appendChild(div);
                 }
                 startCaller();
             } else { alert("ሒሳብዎ በቂ አይደለም!"); }
         }
 
-        // 4. የጨዋታ አሰራር (Caller)
         function startCaller() {
             setInterval(() => {
-                let num = Math.floor(Math.random() * 75) + 1;
-                document.getElementById('called-ball').innerText = num;
+                const letters = ['B', 'I', 'N', 'G', 'O'];
+                let char = letters[Math.floor(Math.random() * 5)];
+                let num = Math.floor(Math.random() * 15) + 1;
+                document.getElementById('called-ball').innerText = char + num;
             }, 3000);
         }
 
-        // 5. የማሸነፊያ ህግ (Rows, Columns, Diagonals, Edges)
         function checkWin() {
             let cells = document.querySelectorAll('.user-cell');
             let b = Array.from(cells).map(c => c.classList.contains('marked'));
             let won = false;
-
-            // Rows & Cols
             for(let i=0; i<5; i++) {
                 if(b.slice(i*5, i*5+5).every(v => v)) won = true;
                 if([b[i], b[i+5], b[i+10], b[i+15], b[i+20]].every(v => v)) won = true;
             }
-            // Diagonals
             if([b[0], b[6], b[12], b[18], b[24]].every(v => v)) won = true;
             if([b[4], b[8], b[12], b[16], b[20]].every(v => v)) won = true;
-            // Edges (Corners/Border)
             let e = [0,1,2,3,4, 5,9, 10,14, 15,19, 20,21,22,23,24];
             if(e.every(idx => b[idx])) won = true;
-
             if(won) document.getElementById('win-message').innerText = "BINGO! GASHENA WINNER!";
         }
     </script>
 </body>
 </html>
+            
