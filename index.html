@@ -7,9 +7,8 @@
         body { font-family: sans-serif; text-align: center; background: #2e7d32; color: white; padding: 10px; }
         .box { border: 2px solid #ffcc80; padding: 15px; margin: 10px auto; max-width: 350px; background: #388e3c; border-radius: 10px; }
         .grid-select { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
-        /* Bingo Card Styling */
         .user-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; max-width: 300px; margin: 10px auto; }
-        .bingo-header { font-weight: bold; background: #1b5e20; padding: 5px; }
+        .bingo-header { font-weight: bold; background: #1b5e20; padding: 5px; border: 1px solid #fff; }
         .card-num, .user-cell { border: 1px solid #fff; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .card-num { background: #1b5e20; }
         .user-cell { background: #fff; color: black; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -85,9 +84,10 @@
                 document.getElementById('main-page').style.display = 'none';
                 document.getElementById('game-area').style.display = 'block';
                 
-                // Bingo Card Grid (B-I-N-G-O)
                 const userCard = document.getElementById('user-card');
                 const headers = ['B', 'I', 'N', 'G', 'O'];
+                const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
+                
                 headers.forEach(h => {
                     let div = document.createElement('div');
                     div.className = 'bingo-header';
@@ -95,17 +95,21 @@
                     userCard.appendChild(div);
                 });
 
-                for(let i=0; i<25; i++) {
-                    let div = document.createElement('div');
-                    div.className = 'user-cell';
-                    if(i === 12) {
-                        div.innerText = "FREE";
-                        div.classList.add('marked', 'free-space');
-                    } else {
-                        div.innerText = Math.floor(Math.random() * 75) + 1;
-                        div.onclick = function() { this.classList.add('marked'); checkWin(); };
+                for(let col=0; col<5; col++) {
+                    for(let row=0; row<5; row++) {
+                        let div = document.createElement('div');
+                        div.className = 'user-cell';
+                        if(row === 2 && col === 2) {
+                            div.innerText = "FREE";
+                            div.classList.add('marked', 'free-space');
+                        } else {
+                            let min = ranges[col][0];
+                            let max = ranges[col][1];
+                            div.innerText = Math.floor(Math.random() * (max - min + 1)) + min;
+                            div.onclick = function() { this.classList.add('marked'); checkWin(); };
+                        }
+                        userCard.appendChild(div);
                     }
-                    userCard.appendChild(div);
                 }
                 startCaller();
             } else { alert("ሒሳብዎ በቂ አይደለም!"); }
@@ -113,10 +117,11 @@
 
         function startCaller() {
             setInterval(() => {
+                const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
                 const letters = ['B', 'I', 'N', 'G', 'O'];
-                let char = letters[Math.floor(Math.random() * 5)];
-                let num = Math.floor(Math.random() * 15) + 1;
-                document.getElementById('called-ball').innerText = char + num;
+                let col = Math.floor(Math.random() * 5);
+                let num = Math.floor(Math.random() * (ranges[col][1] - ranges[col][0] + 1)) + ranges[col][0];
+                document.getElementById('called-ball').innerText = letters[col] + num;
             }, 3000);
         }
 
@@ -124,6 +129,7 @@
             let cells = document.querySelectorAll('.user-cell');
             let b = Array.from(cells).map(c => c.classList.contains('marked'));
             let won = false;
+            // 25 cell total (0 to 24)
             for(let i=0; i<5; i++) {
                 if(b.slice(i*5, i*5+5).every(v => v)) won = true;
                 if([b[i], b[i+5], b[i+10], b[i+15], b[i+20]].every(v => v)) won = true;
@@ -137,4 +143,3 @@
     </script>
 </body>
 </html>
-            
